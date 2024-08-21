@@ -2261,7 +2261,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         """Deletes temp files"""
         
         DIRECTORIES = (BASE_PATH, VR_MODELS_DIR, MDX_MODELS_DIR, DEMUCS_MODELS_DIR, DEMUCS_NEWER_REPO_DIR)
-        EXTENSIONS = (('.aes', '.txt', '.tmp'))
+        EXTENSIONS = (('.aes', '.tmp'))
         
         try:
             if os.path.isfile(f"{current_patch}{application_extension}"):
