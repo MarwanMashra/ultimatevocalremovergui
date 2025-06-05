@@ -3,8 +3,8 @@ from torch import nn
 import torch.nn.functional as F
 from . import layers_new as layers
 
-class BaseNet(nn.Module):
 
+class BaseNet(nn.Module):
     def __init__(self, nin, nout, nin_lstm, nout_lstm, dilations=((4, 2), (8, 4), (12, 6))):
         super(BaseNet, self).__init__()
         self.enc1 = layers.Conv2DBNActiv(nin, nout, 3, 1, 1)
@@ -38,8 +38,8 @@ class BaseNet(nn.Module):
 
         return h
 
-class CascadedNet(nn.Module):
 
+class CascadedNet(nn.Module):
     def __init__(self, n_fft, nn_arch_size=51000, nout=32, nout_lstm=128):
         super(CascadedNet, self).__init__()
         self.max_bin = n_fft // 2
@@ -48,17 +48,17 @@ class CascadedNet(nn.Module):
         self.offset = 64
         nout = 64 if nn_arch_size == 218409 else nout
 
-        #print(nout, nout_lstm, n_fft)
+        # print(nout, nout_lstm, n_fft)
 
         self.stg1_low_band_net = nn.Sequential(
             BaseNet(2, nout // 2, self.nin_lstm // 2, nout_lstm),
-            layers.Conv2DBNActiv(nout // 2, nout // 4, 1, 1, 0)
+            layers.Conv2DBNActiv(nout // 2, nout // 4, 1, 1, 0),
         )
         self.stg1_high_band_net = BaseNet(2, nout // 4, self.nin_lstm // 2, nout_lstm // 2)
 
         self.stg2_low_band_net = nn.Sequential(
             BaseNet(nout // 4 + 2, nout, self.nin_lstm // 2, nout_lstm),
-            layers.Conv2DBNActiv(nout, nout // 2, 1, 1, 0)
+            layers.Conv2DBNActiv(nout, nout // 2, 1, 1, 0),
         )
         self.stg2_high_band_net = BaseNet(nout // 4 + 2, nout // 2, self.nin_lstm // 2, nout_lstm // 2)
 
@@ -68,7 +68,7 @@ class CascadedNet(nn.Module):
         self.aux_out = nn.Conv2d(3 * nout // 4, 2, 1, bias=False)
 
     def forward(self, x):
-        x = x[:, :, :self.max_bin]
+        x = x[:, :, : self.max_bin]
 
         bandw = x.size()[2] // 2
         l1_in = x[:, :, :bandw]
@@ -90,7 +90,7 @@ class CascadedNet(nn.Module):
         mask = F.pad(
             input=mask,
             pad=(0, 0, 0, self.output_bin - mask.size()[2]),
-            mode='replicate'
+            mode="replicate",
         )
 
         if self.training:
@@ -99,7 +99,7 @@ class CascadedNet(nn.Module):
             aux = F.pad(
                 input=aux,
                 pad=(0, 0, 0, self.output_bin - aux.size()[2]),
-                mode='replicate'
+                mode="replicate",
             )
             return mask, aux
         else:
@@ -109,7 +109,7 @@ class CascadedNet(nn.Module):
         mask = self.forward(x)
 
         if self.offset > 0:
-            mask = mask[:, :, :, self.offset:-self.offset]
+            mask = mask[:, :, :, self.offset : -self.offset]
             assert mask.size()[3] > 0
 
         return mask
@@ -119,7 +119,7 @@ class CascadedNet(nn.Module):
         pred_mag = x * mask
 
         if self.offset > 0:
-            pred_mag = pred_mag[:, :, :, self.offset:-self.offset]
+            pred_mag = pred_mag[:, :, :, self.offset : -self.offset]
             assert pred_mag.size()[3] > 0
 
         return pred_mag

@@ -23,9 +23,7 @@ import soundfile as sf
 
 
 class Result:
-    def __init__(
-        self, file: str, subtype: str, use_limiter: bool = True, normalize: bool = True
-    ):
+    def __init__(self, file: str, subtype: str, use_limiter: bool = True, normalize: bool = True):
         _, file_ext = os.path.splitext(file)
         file_ext = file_ext[1:].upper()
         if not sf.check_format(file_ext):
@@ -41,8 +39,10 @@ class Result:
 def pcm16(file: str) -> Result:
     return Result(file, "PCM_16")
 
+
 def pcm24(file: str) -> Result:
     return Result(file, "FLOAT")
+
 
 def save_audiofile(file: str, wav_set="PCM_16") -> Result:
     return Result(file, wav_set)
