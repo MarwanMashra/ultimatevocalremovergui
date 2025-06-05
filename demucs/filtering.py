@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch.utils.data import DataLoader
 
+
 def atan2(y, x):
     r"""Element-wise arctangent function of y/x.
     Returns a new tensor with signed angles in radians.
@@ -308,7 +309,6 @@ def expectation_maximization(
 
             # separate the sources
             for j in range(nb_sources):
-
                 # create a wiener gain for this source
                 gain = torch.zeros_like(inv_Cxx)
 
@@ -442,9 +442,7 @@ def wiener(
         # we tacitly assume that we have magnitude estimates.
         angle = atan2(mix_stft[..., 1], mix_stft[..., 0])[..., None]
         nb_sources = targets_spectrograms.shape[-1]
-        y = torch.zeros(
-            mix_stft.shape + (nb_sources,), dtype=mix_stft.dtype, device=mix_stft.device
-        )
+        y = torch.zeros(mix_stft.shape + (nb_sources,), dtype=mix_stft.dtype, device=mix_stft.device)
         y[..., 0, :] = targets_spectrograms * torch.cos(angle)
         y[..., 1, :] = targets_spectrograms * torch.sin(angle)
 

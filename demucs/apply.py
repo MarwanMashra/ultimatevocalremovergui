@@ -7,10 +7,11 @@
 Code to apply a model to a mix. It will handle chunking with overlaps and
 inteprolation between chunks, as well as the "shift trick".
 """
+
 from concurrent.futures import ThreadPoolExecutor
 import random
 import typing as tp
-from multiprocessing import Process,Queue,Pipe
+from multiprocessing import Process, Queue, Pipe
 
 import torch as th
 from torch import nn
@@ -26,10 +27,14 @@ Model = tp.Union[Demucs, HDemucs]
 
 progress_bar_num = 0
 
+
 class BagOfModels(nn.Module):
-    def __init__(self, models: tp.List[Model],
-                 weights: tp.Optional[tp.List[tp.List[float]]] = None,
-                 segment: tp.Optional[float] = None):
+    def __init__(
+        self,
+        models: tp.List[Model],
+        weights: tp.Optional[tp.List[tp.List[float]]] = None,
+        segment: tp.Optional[float] = None,
+    ):
         """
         Represents a bag of models with specific weights.
         You should call `apply_model` rather than calling directly the forward here for
@@ -43,7 +48,7 @@ class BagOfModels(nn.Module):
             segment (None or float): overrides the `segment` attribute of each model
                 (this is performed inplace, be careful if you reuse the models passed).
         """
-        
+
         super().__init__()
         assert len(models) > 0
         first = models[0]
@@ -60,7 +65,7 @@ class BagOfModels(nn.Module):
         self.models = nn.ModuleList(models)
 
         if weights is None:
-            weights = [[1. for _ in first.sources] for _ in models]
+            weights = [[1.0 for _ in first.sources] for _ in models]
         else:
             assert len(weights) == len(models)
             for weight in weights:
@@ -69,6 +74,7 @@ class BagOfModels(nn.Module):
 
     def forward(self, x):
         raise NotImplementedError("Call `apply_model` on this.")
+
 
 class TensorChunk:
     def __init__(self, tensor, offset=0, length=None):
@@ -114,6 +120,7 @@ class TensorChunk:
         assert out.shape[-1] == target_length
         return out
 
+
 def tensor_chunk(tensor_or_chunk):
     if isinstance(tensor_or_chunk, TensorChunk):
         return tensor_or_chunk
@@ -121,18 +128,21 @@ def tensor_chunk(tensor_or_chunk):
         assert isinstance(tensor_or_chunk, th.Tensor)
         return TensorChunk(tensor_or_chunk)
 
-def apply_model(model, 
-                mix, 
-                shifts=1, 
-                split=True, 
-                overlap=0.25, 
-                transition_power=1., 
-                static_shifts=1, 
-                set_progress_bar=None, 
-                device=None, 
-                progress=False, 
-                num_workers=0, 
-                pool=None): 
+
+def apply_model(
+    model,
+    mix,
+    shifts=1,
+    split=True,
+    overlap=0.25,
+    transition_power=1.0,
+    static_shifts=1,
+    set_progress_bar=None,
+    device=None,
+    progress=False,
+    num_workers=0,
+    pool=None,
+):
     """
     Apply model to a given mixture.
 
@@ -150,33 +160,33 @@ def apply_model(model,
             When `device` is different from `mix.device`, only local computations will
             be on `device`, while the entire tracks will be stored on `mix.device`.
     """
-    
+
     global fut_length
     global bag_num
     global prog_bar
-    
+
     if device is None:
         device = mix.device
     else:
         device = th.device(device)
     if pool is None:
-        if num_workers > 0 and device.type == 'cpu':
+        if num_workers > 0 and device.type == "cpu":
             pool = ThreadPoolExecutor(num_workers)
         else:
             pool = DummyPoolExecutor()
-            
+
     kwargs = {
-        'shifts': shifts,
-        'split': split,
-        'overlap': overlap,
-        'transition_power': transition_power,
-        'progress': progress,
-        'device': device,
-        'pool': pool,
-        'set_progress_bar': set_progress_bar,
-        'static_shifts': static_shifts,
+        "shifts": shifts,
+        "split": split,
+        "overlap": overlap,
+        "transition_power": transition_power,
+        "progress": progress,
+        "device": device,
+        "pool": pool,
+        "set_progress_bar": set_progress_bar,
+        "static_shifts": static_shifts,
     }
-    
+
     if isinstance(model, BagOfModels):
         # Special treatment for bag of model.
         # We explicitely apply multiple times `apply_model` so that the random shifts
@@ -187,7 +197,7 @@ def apply_model(model,
         bag_num = len(model.models)
         fut_length = 0
         prog_bar = 0
-        current_model = 0 #(bag_num + 1)
+        current_model = 0  # (bag_num + 1)
         for sub_model, weight in zip(model.models, model.weights):
             original_model_device = next(iter(sub_model.parameters())).device
             sub_model.to(device)
@@ -209,9 +219,9 @@ def apply_model(model,
     model.eval()
     assert transition_power >= 1, "transition_power < 1 leads to weird behavior."
     batch, channels, length = mix.shape
-    
+
     if shifts:
-        kwargs['shifts'] = 0
+        kwargs["shifts"] = 0
         max_shift = int(0.5 * model.samplerate)
         mix = tensor_chunk(mix)
         padded_mix = mix.padded(length + 2 * max_shift)
@@ -220,11 +230,11 @@ def apply_model(model,
             offset = random.randint(0, max_shift)
             shifted = TensorChunk(padded_mix, offset, length + max_shift - offset)
             shifted_out = apply_model(model, shifted, **kwargs)
-            out += shifted_out[..., max_shift - offset:]
+            out += shifted_out[..., max_shift - offset :]
         out /= shifts
         return out
     elif split:
-        kwargs['split'] = False
+        kwargs["split"] = False
         out = th.zeros(batch, len(model.sources), channels, length, device=mix.device)
         sum_weight = th.zeros(length, device=mix.device)
         segment = int(model.samplerate * model.segment)
@@ -234,12 +244,16 @@ def apply_model(model,
         # We start from a triangle shaped weight, with maximal weight in the middle
         # of the segment. Then we normalize and take to the power `transition_power`.
         # Large values of transition power will lead to sharper transitions.
-        weight = th.cat([th.arange(1, segment // 2 + 1, device=device),
-                         th.arange(segment - segment // 2, 0, -1, device=device)])
+        weight = th.cat(
+            [
+                th.arange(1, segment // 2 + 1, device=device),
+                th.arange(segment - segment // 2, 0, -1, device=device),
+            ]
+        )
         assert len(weight) == segment
         # If the overlap < 50%, this will translate to linear transition when
         # transition_power is 1.
-        weight = (weight / weight.max())**transition_power
+        weight = (weight / weight.max()) ** transition_power
         futures = []
         for offset in offsets:
             chunk = TensorChunk(mix, offset, segment)
@@ -247,21 +261,21 @@ def apply_model(model,
             futures.append((future, offset))
             offset += segment
         if progress:
-            futures = tqdm.tqdm(futures, unit_scale=scale, ncols=120, unit='seconds')
+            futures = tqdm.tqdm(futures, unit_scale=scale, ncols=120, unit="seconds")
         for future, offset in futures:
             if set_progress_bar:
-                fut_length = (len(futures) * bag_num * static_shifts)
+                fut_length = len(futures) * bag_num * static_shifts
                 prog_bar += 1
-                set_progress_bar(0.1, (0.8/fut_length*prog_bar))
+                set_progress_bar(0.1, (0.8 / fut_length * prog_bar))
             chunk_out = future.result()
             chunk_length = chunk_out.shape[-1]
-            out[..., offset:offset + segment] += (weight[:chunk_length] * chunk_out).to(mix.device)
-            sum_weight[offset:offset + segment] += weight[:chunk_length].to(mix.device)
+            out[..., offset : offset + segment] += (weight[:chunk_length] * chunk_out).to(mix.device)
+            sum_weight[offset : offset + segment] += weight[:chunk_length].to(mix.device)
         assert sum_weight.min() > 0
         out /= sum_weight
         return out
     else:
-        if hasattr(model, 'valid_length'):
+        if hasattr(model, "valid_length"):
             valid_length = model.valid_length(length)
         else:
             valid_length = length
@@ -270,10 +284,10 @@ def apply_model(model,
         with th.no_grad():
             out = model(padded_mix)
         return center_trim(out, length)
-    
+
+
 def demucs_segments(demucs_segment, demucs_model):
-    
-    if demucs_segment == 'Default':
+    if demucs_segment == "Default":
         segment = None
         if isinstance(demucs_model, BagOfModels):
             if segment is not None:
@@ -301,5 +315,5 @@ def demucs_segments(demucs_segment, demucs_model):
             else:
                 if segment is not None:
                     sub.segment = segment
-                    
+
     return demucs_model

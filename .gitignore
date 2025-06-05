@@ -162,5 +162,9 @@ cython_debug/
 #.idea/
 
 
-models/
 temp_*
+
+*.ckpt
+*.pth
+*.pkl
+!lib_v5/mixer.ckpt

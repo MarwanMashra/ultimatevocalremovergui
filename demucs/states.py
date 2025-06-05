@@ -6,6 +6,7 @@
 """
 Utilities to save and load models.
 """
+
 from contextlib import contextmanager
 
 import functools
@@ -24,13 +25,11 @@ def get_quantizer(model, args, optimizer=None):
     """Return the quantizer given the XP quantization args."""
     quantizer = None
     if args.diffq:
-        quantizer = DiffQuantizer(
-            model, min_size=args.min_size, group_size=args.group_size)
+        quantizer = DiffQuantizer(model, min_size=args.min_size, group_size=args.group_size)
         if optimizer is not None:
             quantizer.setup_optimizer(optimizer)
     elif args.qat:
-        quantizer = UniformQuantizer(
-                model, bits=args.qat, min_size=args.min_size)
+        quantizer = UniformQuantizer(model, bits=args.qat, min_size=args.min_size)
     return quantizer
 
 
@@ -43,7 +42,7 @@ def load_model(path_or_package, strict=False):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             path = path_or_package
-            package = torch.load(path, 'cpu')
+            package = torch.load(path, "cpu")
     else:
         raise ValueError(f"Invalid type for {path_or_package}.")
 
@@ -73,18 +72,18 @@ def get_state(model, quantizer, half=False):
     but half the state size."""
     if quantizer is None:
         dtype = torch.half if half else None
-        state = {k: p.data.to(device='cpu', dtype=dtype) for k, p in model.state_dict().items()}
+        state = {k: p.data.to(device="cpu", dtype=dtype) for k, p in model.state_dict().items()}
     else:
         state = quantizer.get_quantized_state()
-        state['__quantized'] = True
+        state["__quantized"] = True
     return state
 
 
 def set_state(model, state, quantizer=None):
     """Set the state on a given model."""
-    if state.get('__quantized'):
+    if state.get("__quantized"):
         if quantizer is not None:
-            quantizer.restore_quantized_state(model, state['quantized'])
+            quantizer.restore_quantized_state(model, state["quantized"])
         else:
             restore_quantized_state(model, state)
     else:
@@ -109,11 +108,11 @@ def serialize_model(model, training_args, quantizer=None, half=True):
 
     state = get_state(model, quantizer, half)
     return {
-        'klass': klass,
-        'args': args,
-        'kwargs': kwargs,
-        'state': state,
-        'training_args': OmegaConf.to_container(training_args, resolve=True),
+        "klass": klass,
+        "args": args,
+        "kwargs": kwargs,
+        "state": state,
+        "training_args": OmegaConf.to_container(training_args, resolve=True),
     }
 
 
