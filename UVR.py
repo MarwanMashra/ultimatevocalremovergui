@@ -1,68 +1,67 @@
 # GUI modules
+import base64
+import hashlib
+import json
+import math
+import os
+import pickle
+import queue
+import re
+import shutil
+import subprocess
+import sys
 import time
+import tkinter as tk
+import tkinter.ttk as ttk
+import traceback
+import urllib.request
+import webbrowser
+from collections import Counter
+from datetime import datetime
+from pathlib import Path
+from tkinter import filedialog, messagebox
+from tkinter.font import Font
+from typing import List
 
 # start_time = time.time()
 import audioread
-import gui_data.sv_ttk
-import hashlib
-import json
 import librosa
-import math
+import matchering as match
 import natsort
-import os
-import pickle
+import onnx
 import psutil
-from pyglet import font as pyglet_font
 import pyperclip
-import base64
-import queue
-import shutil
-import subprocess
 import soundfile as sf
 import torch
-import urllib.request
-import webbrowser
 import wget
-import traceback
-import matchering as match
-import tkinter as tk
-import tkinter.ttk as ttk
-from tkinter.font import Font
-from tkinter import filedialog
-from tkinter import messagebox
-from collections import Counter
-from __version__ import VERSION, PATCH, PATCH_MAC, PATCH_LINUX
+import yaml
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from datetime import datetime
-from gui_data.constants import *
-from gui_data.app_size_values import *
-from gui_data.error_handling import error_text, error_dialouge
-from gui_data.old_data_check import file_check, remove_unneeded_yamls, remove_temps
-from gui_data.tkinterdnd2 import TkinterDnD, DND_FILES
-from lib_v5.vr_network.model_param_init import ModelParameters
 from kthread import KThread
+from ml_collections import ConfigDict
+from playsound import playsound
+from pyglet import font as pyglet_font
+
+import gui_data.sv_ttk
+from __version__ import PATCH, PATCH_LINUX, PATCH_MAC, VERSION
+from gui_data.app_size_values import *
+from gui_data.constants import *
+from gui_data.error_handling import error_dialouge, error_text
+from gui_data.old_data_check import file_check, remove_temps, remove_unneeded_yamls
+from gui_data.tkinterdnd2 import DND_FILES, TkinterDnD
 from lib_v5 import spec_utils
-from pathlib import Path
+from lib_v5.vr_network.model_param_init import ModelParameters
 from separate import (
     SeperateDemucs,
     SeperateMDX,
     SeperateMDXC,
     SeperateVR,  # Model-related
-    save_format,
     clear_gpu_cache,  # Utility functions
     cuda_available,
     mps_available,  # directml_available,
+    save_format,
 )
-from playsound import playsound
-from typing import List
-import onnx
-import re
-import sys
-import yaml
-from ml_collections import ConfigDict
-from collections import Counter
 
 # if not is_macos:
 #     import torch_directml
@@ -298,6 +297,8 @@ MODEL_DATA_FILES = [
 
 file_check(os.path.join(MODELS_DIR, "Main_Models"), VR_MODELS_DIR)
 file_check(os.path.join(DEMUCS_MODELS_DIR, "v3_repo"), DEMUCS_NEWER_REPO_DIR)
+print(DEMUCS_MODELS_DIR)
+print(os.path.exists(DEMUCS_MODELS_DIR))
 remove_unneeded_yamls(DEMUCS_MODELS_DIR)
 
 remove_temps(ENSEMBLE_TEMP_PATH)
