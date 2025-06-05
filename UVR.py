@@ -1,4 +1,3 @@
-# GUI modules
 import base64
 import hashlib
 import json
@@ -23,7 +22,6 @@ from tkinter import filedialog, messagebox
 from tkinter.font import Font
 from typing import List
 
-# start_time = time.time()
 import audioread
 import librosa
 import matchering as match
@@ -42,6 +40,7 @@ from kthread import KThread
 from ml_collections import ConfigDict
 from playsound import playsound
 from pyglet import font as pyglet_font
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 import gui_data.sv_ttk
 from __version__ import PATCH, PATCH_LINUX, PATCH_MAC, VERSION
@@ -49,17 +48,18 @@ from gui_data.app_size_values import *
 from gui_data.constants import *
 from gui_data.error_handling import error_dialouge, error_text
 from gui_data.old_data_check import file_check, remove_temps, remove_unneeded_yamls
-from gui_data.tkinterdnd2 import DND_FILES, TkinterDnD
+
+# from gui_data.tkinterdnd2 import DND_FILES, TkinterDnD
 from lib_v5 import spec_utils
 from lib_v5.vr_network.model_param_init import ModelParameters
+from separate import SeperateVR  # Model-related
+from separate import clear_gpu_cache  # Utility functions
+from separate import mps_available  # directml_available,
 from separate import (
     SeperateDemucs,
     SeperateMDX,
     SeperateMDXC,
-    SeperateVR,  # Model-related
-    clear_gpu_cache,  # Utility functions
     cuda_available,
-    mps_available,  # directml_available,
     save_format,
 )
 
@@ -297,8 +297,6 @@ MODEL_DATA_FILES = [
 
 file_check(os.path.join(MODELS_DIR, "Main_Models"), VR_MODELS_DIR)
 file_check(os.path.join(DEMUCS_MODELS_DIR, "v3_repo"), DEMUCS_NEWER_REPO_DIR)
-print(DEMUCS_MODELS_DIR)
-print(os.path.exists(DEMUCS_MODELS_DIR))
 remove_unneeded_yamls(DEMUCS_MODELS_DIR)
 
 remove_temps(ENSEMBLE_TEMP_PATH)
@@ -10557,4 +10555,6 @@ if __name__ == "__main__":
     root.update() if is_windows else root.update_idletasks()
     root.deiconify()
     root.configure(bg=BG_COLOR)
+    root.mainloop()
+    root.mainloop()
     root.mainloop()

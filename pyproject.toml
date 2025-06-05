@@ -3,7 +3,7 @@ name = "ultimatevocalremovergui"
 version = "5.7.0"
 description = "GUI for a Vocal Remover that uses Deep Neural Networks."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9, <3.10"
 dependencies = [
     "audioread>=3.0.1",
     "cryptography>=45.0.3",
@@ -19,10 +19,10 @@ dependencies = [
     "omegaconf>=2.3.0",
     "onnx>=1.18.0",
     "onnx2pytorch>=0.5.1",
-    "onnxruntime>=1.20.1",
-    "onnxruntime-gpu>=1.20.2",
+    "onnxruntime>=1.19.0",
+    "onnxruntime-gpu>=1.19.0",
     "opencv-python>=4.11.0.86",
-    "pillow>=11.2.1",
+    "pillow>=9.3.0, <10.0.0",
     "playsound==1.2.2",
     "psutil>=7.0.0",
     "pydub>=0.25.1",
@@ -36,6 +36,7 @@ dependencies = [
     "scipy>=1.13.1",
     "screeninfo>=0.8.1",
     "soundfile>=0.13.1",
+    "tkinterdnd2>=0.4.3",
     "torch>=2.7.1",
     "wget>=3.2",
 ]

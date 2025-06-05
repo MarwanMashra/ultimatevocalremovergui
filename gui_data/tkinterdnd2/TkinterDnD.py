@@ -51,8 +51,8 @@ def _require(tkroot):
         module_path = os.path.join(os.path.dirname(__file__), "tkdnd", tkdnd_platform_rep)
         tkroot.tk.call("lappend", "auto_path", module_path)
         TkdndVersion = tkroot.tk.call("package", "require", "tkdnd")
-    except tkinter.TclError:
-        raise RuntimeError("Unable to load tkdnd library.")
+    except tkinter.TclError as e:
+        raise RuntimeError("Unable to load tkdnd library.") from e
     return TkdndVersion
 
 
